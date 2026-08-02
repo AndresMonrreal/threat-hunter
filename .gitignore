@@ -1,4 +1,5 @@
 .venv/
-.envdata/knowledge/attack/*.json
+.env
+data/knowledge/attack/*.json
 __pycache__/
 *.pyc

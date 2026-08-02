@@ -25,9 +25,12 @@ application/hunting/execute_hunt.py
 application/hunting/map_attack.py
 application/hunting/propose_hunt.py
 application/rag/__init__.py
+application/rag/answer_question.py
 application/rag/chunking.py
 application/rag/ingest.py
 application/rag/retrieve.py
+application/rag/loaders/attack_loader.py
+application/rag/loaders/obsidian_loader.py
 domain/__init__.py
 domain/entities/__init__.py
 domain/entities/chunk.py
