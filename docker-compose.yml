@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: thm
-      POSTGRES_PASSWORD: thm_dev_password
+      POSTGRES_PASSWORD: una_nueva_aqui
       POSTGRES_DB: threathunter
     ports: 
       - "5432:5432"
