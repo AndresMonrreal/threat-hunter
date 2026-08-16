@@ -17,16 +17,18 @@ class OllamaAdapter(LLMProviderPort):
         payload = {
             "model": self._model,
             "prompt": prompt,
-            "stream": False,
+            "stream": False,  # False = espera la respuesta completa en vez de recibirla en pedazos
         }
         if system:
+            # agrega el mensaje de sistema al payload si se proporcionó
             payload["system"] = system
-            
+
         response = requests.post(
             f"{self._ollama_url}/api/generate",
             json=payload,
             timeout=120,
         )
+        # lanza excepcion si Ollama respondio con codigo de error (4xx/5xx)
         response.raise_for_status()
         return response.json()["response"]
     

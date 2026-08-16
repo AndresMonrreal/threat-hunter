@@ -21,7 +21,7 @@ if len(chunks) == 0:
 print(f"   {len(chunks)} chunks generados de tus notas.")
 
 print("\n2) Generando embeddings e insertando en pgvector...")
-for i,chunk in enumerate(chunks,1):
+for i,chunk in enumerate(chunks,1):  # arranca en 1 para que el progreso impreso sea "1/N" y no "0/N"
     embedding = container.embedder.embed(chunk.content)
     container.vector_store.add_chunk([chunk],[embedding])
     print(f"   [{i}/{len(chunks)}] {chunk.metadata['note_path']}")

@@ -11,12 +11,14 @@ from domain.entities.chunk import Chunk
 SOURCE_TYPE = "attack_official"
 
 def _get_technique_id(obj:dict) -> str | None:
+    # busca la referencia externa que viene de mitre-attack y saca su id (ej. "T1059")
     for ref in obj.get("external_references",[]):
         if ref.get("source_name") == "mitre-attack":
             return ref.get("external_id")
     return None
 
 def _get_tactics(obj:dict) -> list[str]:
+    # kill_chain_phases trae las tacticas asociadas a la tecnica (ej. "persistence")
     return [phase["phase_name"] for phase in obj.get("kill_chain_phases", [])]
 
 
@@ -27,20 +29,23 @@ def load_attack_techniques(json_path: str) -> list[Chunk]:
     chunks: list[Chunk] = []
     
     for obj in data["objects"]:
+        # solo interesan objetos STIX tipo "attack-pattern" (tecnicas); ignora grupos, software, etc
         if obj.get("type") != "attack-pattern":
             continue
+        # descarta tecnicas revocadas o deprecadas, ya no sirven para hunting
         if obj.get("revoked") or obj.get("x_mitre_deprecated"):
             continue
-        
+
         technique_id = _get_technique_id(obj)
         if not technique_id:
             continue
-        
+
         name = obj.get("name","")
         description = obj.get("description","")
         tactics = _get_tactics(obj)
         platform = obj.get("x_mitre_platforms",[])
-        
+
+        # id+nombre+descripcion en un solo texto, es lo que se indexa y se busca despues
         content = f"{technique_id} - {name}\n\n{description}"
         
         chunks.append(

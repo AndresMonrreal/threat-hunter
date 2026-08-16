@@ -1,9 +1,11 @@
 import re
 from datetime import datetime
 from collections import defaultdict
-
+#EL re.compile() compila la expresion regular para que sea mas eficiente al usarla varias veces
 PATRON_FALLO_SSH = re.compile(
+    #El regex para detectar intentos fallidos de SSH y capturar la IP del atacante
     r"^(\w{3}\s+\d{1,2}\s\d{2}:\d{2}:\d{2}).*"
+    #Esta de aqui es la parte que matchea el timestamp del log, que tiene el formato "Mes Dia Hora:Minuto:Segundo"
     r"Failed password for (?:invalid user )?\S+ from (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) port"
 )
 
@@ -11,52 +13,49 @@ UMBRAL_INTENTOS = 5
 VENTANA_SEGUNDOS = 60
 
 def parsear_timestamp(texto_fecha: str) -> datetime:
+    # auth.log no trae el año en el timestamp, se asume el año actual
     year_actual = datetime.now().year
     texto_completo = f"{year_actual} {texto_fecha}"
-    #EL strptime() convierte una cadena de texto en un objeto datetime según el formato especificado.
     return datetime.strptime(texto_completo, "%Y %b %d %H:%M:%S")
 
-#El list[tuple[datetime, str]] indica que la función devuelve una lista de tuplas, donde cada tupla contiene un objeto datetime y una cadena de texto (str).
-#  Esto es útil para representar eventos con su marca de tiempo y la dirección IP asociada.
+#Regresa una lista de tuplas (timestamp, ip) de todos los intentos fallidos de SSH encontrados en el log
 def extraer_eventos(ruta_log: str) -> list[tuple[datetime,str]]:
     eventos = []
-
+#El with open(ruta_log,"r", encoding="utf-8", errors="ignore") as f: abre el archivo de log en modo lectura, con codificación UTF-8 y omitiendo errores de codificación.
+#Esto permite leer el archivo línea por línea sin que se interrumpa por caracteres no válidos.
     with open(ruta_log,"r", encoding="utf-8", errors="ignore") as f:
         for line in f:
             match = PATRON_FALLO_SSH.search(line)
             if match:
-                #EL parsear_timestamp() convierte la cadena de texto que representa la fecha y hora en un objeto datetime
-                #EL match.group(1) obtiene la primera coincidencia del patrón regex, que corresponde a la marca de tiempo del evento
+                # group(1) es el timestamp del log, group(2) es la ip del intento fallido
                 timestamp = parsear_timestamp(match.group(1))
-                #Marcamos la ip con el match.group(2) que obtiene la segunda coincidencia del patrón regex, que corresponde a la dirección IP desde la cual se intentó el acceso fallido
                 ip = match.group(2)
                 eventos.append((timestamp, ip))
     return eventos
 
 
 def detectar_fuerza_bruta(eventos: list[tuple[datetime, str]]) -> list[dict]:
-    #El defaultdict(list) crea un diccionario donde cada clave es una dirección IP y su valor asociado es una lista de marcas de tiempo (timestamps)
-    # de los eventos de fallo de autenticación para esa IP.
+    # agrupa los timestamps de fallo por ip, para analizar cada ip por separado
+    #El defaultdict(list) crea un diccionario donde cada clave es una IP y el valor es una lista de timestamps de intentos fallidos asociados a esa IP.
     eventos_por_ip = defaultdict(list)
     for timestamp, ip in eventos:
-    #El eventos_por_ip[ip].append(timestamp) agrega la marca de tiempo del evento a la lista correspondiente a la dirección IP en el diccionario eventos_por_ip.
         eventos_por_ip[ip].append(timestamp)
 
     alertas = []
-    #El items() devuelve una vista de los pares clave-valor del diccionario eventos_por_ip,
-    # lo que permite iterar sobre cada dirección IP y su lista de marcas de tiempo asociadas.
+    #El items() devuelve una vista de los pares clave-valor del diccionario, permitiendo iterar sobre cada IP y su lista de timestamps.
     for ip, timestamps in eventos_por_ip.items():
         timestamps.sort()
 
+        # ventana deslizante: por cada evento, cuenta cuantos eventos de esa ip
+        # caen dentro de los siguientes VENTANA_SEGUNDOS
         for i in range(len(timestamps)):
             inicio_ventana = timestamps[i]
-            #EL inicio_ventana.timestamp() obtiene el timestamp del evento
             fin_ventana = inicio_ventana.timestamp() + VENTANA_SEGUNDOS
-            #EL t for t in timestamps[i:] itera sobre las marcas de tiempo desde la posición i hasta el final de la lista.
-            #Y en eventos_en_ventana se almacenan solo aquellos eventos cuya marca de tiempo es menor o igual a fin_ventana, es decir,
-            # los eventos que ocurren dentro de la ventana de tiempo especificada.
+            #Eventos en la ventana: filtra los timestamps de la lista que caen dentro del rango de tiempo definido por inicio_ventana y fin_ventana.
+            #El t for t in timestamps[i:] itera sobre los timestamps desde el índice i hasta el final de la lista, y la condición 
+            #if t.timestamp() <= fin_ventana asegura que solo se incluyan aquellos que están dentro de la ventana de tiempo.
             eventos_en_ventana = [
-                t for t in timestamps [i:] 
+                t for t in timestamps [i:]
                 if t.timestamp() <= fin_ventana
             ]
 
@@ -67,7 +66,7 @@ def detectar_fuerza_bruta(eventos: list[tuple[datetime, str]]) -> list[dict]:
                     "inicio": eventos_en_ventana[0],
                     "fin": eventos_en_ventana[-1]
                 })
-                break #Ya se alerto por ip no revisar mas eventos de esa ip
+                break # ya se alerto por esta ip, no revisar mas eventos de esa ip
     return alertas
 
 def main():

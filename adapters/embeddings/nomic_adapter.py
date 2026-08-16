@@ -18,9 +18,11 @@ class OllamaEmbeddingAdapter(EmbeddingProviderPort):
             f"{self._base_url}/api/embeddings",
             json={"model": self._model, "prompt": text},
             timeout=60,
-        ) 
+        )
+        # lanza excepcion si Ollama respondio con codigo de error (4xx/5xx)
         response.raise_for_status()
         return response.json()["embedding"]
 
     def embed_batch(self, texts: list[str]) -> list[list[float]]:
+        # Ollama no tiene endpoint de batch, asi que se llama embed() uno por uno
         return [self.embed(text) for text in texts]

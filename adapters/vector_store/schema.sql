@@ -11,6 +11,13 @@ CREATE TABLE IF NOT EXISTS chunks (
     embedding   VECTOR(768) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS ingested_notes (
+    note_path    TEXT PRIMARY KEY,
+    content_hash TEXT NOT NULL,
+    chunk_count  INTEGER NOT NULL,
+    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE INDEX IF NOT EXISTS idx_chunks_embedding
     ON chunks USING hnsw (embedding vector_cosine_ops);
 

@@ -14,6 +14,7 @@ settings = load_settings()
 CONNINFO = settings.postgres_conninfo
 
 def fake_vector(seed: int) -> list[float]:
+    # mismo seed siempre da el mismo vector, asi se puede volver a "buscar" el vector de un chunk ya insertado
     random.seed(seed)
     return [random.random() for _ in range(768)]
 

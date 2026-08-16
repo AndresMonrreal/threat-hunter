@@ -23,20 +23,22 @@ class Container:
     """
     def __init__(self,settings:Settings):
         self.settings = settings
+        # asignacion encadenada: tambien reasigna el nombre EmbeddingProviderPort en este modulo
         self.embedder = EmbeddingProviderPort = self._build_embedder()
         self.llm: LLMProviderPort = self._build_llm()
         self.vector_store: VectorStorePort = self._build_vector_store()
-        
+
     def _build_embedder(self) -> EmbeddingProviderPort:
+        # hoy solo hay adaptador de Ollama; otros providers lanzan error hasta que se implementen
         if self.settings.llm_provider == "ollama":
             return OllamaEmbeddingAdapter(model=self.settings.embedding_model)
         raise ValueError(f"Unknown LLM provider: {self.settings.llm_provider}")
-    
+
     def _build_llm(self) -> LLMProviderPort:
         if self.settings.llm_provider == "ollama":
             return OllamaAdapter(model_name=self.settings.llm_model)
         raise ValueError(f"Unknown LLM provider: {self.settings.llm_provider}")
-    
+
     def _build_vector_store(self) -> VectorStorePort:
         return PgVectorAdapter(self.settings.postgres_conninfo)
     

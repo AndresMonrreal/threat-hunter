@@ -42,8 +42,10 @@ results = store.search(query_embedding=query_vector,top_k=3)
 
 for r in results:
     print(f"   score={r.score:.4f}  id={r.chunk.id}  -> {r.chunk.content[:60]}...")
+    # search() ya devuelve ordenado por score, asi que el mejor resultado siempre es el primero
     mejor = results[0]
-    
+
+
 print(f"\n4) Verificando que el MEJOR resultado sea el correcto (t1055, Process Injection)...")
 assert mejor.chunk.id == "t1055", f"Se esperaba t1055, salio {mejor.chunk.id}"
 print("   CORRECTO: encontro el chunk correcto por significado, no por palabras exactas.")

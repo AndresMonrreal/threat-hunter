@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv()  # carga las variables del archivo .env al entorno del proceso
 
 @dataclass(frozen=True)
 class Settings:
@@ -35,9 +35,11 @@ class Settings:
 
 def load_settings() -> Settings:
     return Settings(
+        # os.environ[...] (sin default) revienta con KeyError si falta la variable: son obligatorias
         postgres_user=os.environ["POSTGRES_USER"],
         postgres_password=os.environ["POSTGRES_PASSWORD"],
         postgres_db=os.environ["POSTGRES_DB"],
+        # os.environ.get(...) con default: son opcionales, caen a un valor razonable si faltan
         postgres_host=os.environ.get("POSTGRES_HOST", "localhost"),
         postgres_port=os.environ.get("POSTGRES_PORT", "5432"),
         llm_provider=os.environ.get("LLM_PROVIDER", "ollama"),
