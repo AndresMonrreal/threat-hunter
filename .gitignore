@@ -3,3 +3,4 @@
 data/knowledge/attack/*.json
 __pycache__/
 *.pyc
+security-scripts/
