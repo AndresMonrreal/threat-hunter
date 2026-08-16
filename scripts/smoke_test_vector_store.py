@@ -7,10 +7,10 @@ que el adaptador habla bien con Postgres, no la calidad semantica
 
 import random 
 from adapters.vector_store.pgvector_adapter import PgVectorAdapter
-from domain.entities.vector.chunk import Chunk
-from infrastructure.config import load_config
+from domain.entities.chunk import Chunk
+from infrastructure.config import load_settings
 
-settings = load_config()
+settings = load_settings()
 CONNINFO = settings.postgres_conninfo
 
 def fake_vector(seed: int) -> list[float]:
