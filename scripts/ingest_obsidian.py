@@ -4,13 +4,20 @@ Ingiere toda tu boveda de Obsidian (clonada como repo Git) al RAG.
 
 from application.rag.loaders.obsidian_loader import load_obsidian_notes
 from infrastructure.container import build_container
+from infrastructure.config import load_settings
 
-VAULT_PATH = "/home/andres/obsidian-notes"
+settings = load_settings()
+VAULT_PATH = settings.obsidian_vault_path
+
 
 container = build_container()
 
 print(f"1) Leyendo notas desde: {VAULT_PATH}")
 chunks = load_obsidian_notes(VAULT_PATH)
+
+if len(chunks) == 0:
+    raise RuntimeError(f"No se encontraron notas .md en {VAULT_PATH}. Revisa la ruta.")
+
 print(f"   {len(chunks)} chunks generados de tus notas.")
 
 print("\n2) Generando embeddings e insertando en pgvector...")

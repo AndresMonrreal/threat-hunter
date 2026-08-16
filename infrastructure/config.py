@@ -21,6 +21,7 @@ class Settings:
     llm_model: str
     llm_provider: str
     embedding_model: str
+    obsidian_vault_path: str
 
     @property
     def postgres_conninfo(self) -> str:
@@ -42,4 +43,5 @@ def load_settings() -> Settings:
         llm_provider=os.environ.get("LLM_PROVIDER", "ollama"),
         llm_model=os.environ.get("LLM_MODEL", "qwen3:8b"),
         embedding_model=os.environ.get("EMBEDDING_MODEL", "nomic-embed-text"),
+        obsidian_vault_path=os.environ["OBSIDIAN_VAULT_PATH"],
     )

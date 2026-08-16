@@ -4,9 +4,9 @@ services:
     container_name: threat-hunter-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: thm
-      POSTGRES_PASSWORD: una_nueva_aqui
-      POSTGRES_DB: threathunter
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports: 
       - "5432:5432"
     volumes:
