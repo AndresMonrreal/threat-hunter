@@ -1,0 +1,6 @@
+[Unit]
+Description=Ingesta incremental de notas Obsidian para threat-hunter
+
+[Service]
+Type=oneshot
+ExecStart=/home/andres/threat-hunter/scripts/run_incremental_ingest.sh
