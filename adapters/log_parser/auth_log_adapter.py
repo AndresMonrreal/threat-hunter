@@ -1,37 +1,35 @@
 import re
-from collections import Counter
+from datetime import datetime
+from domain.entities.log_event import LogEvent
 
 # matchea lineas de auth.log tipo:
 # "Failed password for invalid user admin from 185.220.101.45 port 51320 ssh2"
-#el re.compile() compila la expresion regular para que sea mas eficiente al usarla varias veces
-PATRON_FALLO_SSH = re.compile(
-    # regex para detectar intentos fallidos de SSH y capturar la IP del atacante
-    r"Failed password for (?:invalid user )?\S+ from (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) port"
+# "Accepted password for andres from 200.30.15.9 port 40500 ssh2"
+PATRON_EVENTO_SSH = re.compile(
+    r"^(\w{3}\s+\d{1,2}\s\d{2}:\d{2}:\d{2}).*"
+    r"(Accepted|Failed) password for (?:invalid user )?(\S+) from "
+    r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) port"
 )
 
-#Porque counter es util para contar ocurrencias de elementos en una lista o iterable.
-#En este caso, se usa para contar cuántos intentos fallidos de SSH provienen de cada dirección IP.
-def contar_fallos_por_ip(ruta_log: str) -> Counter:
-    contador = Counter()
-#El with open(ruta_log,"r", encoding="utf-8", errors="ignore") as f: abre el archivo de log en modo lectura, con codificación UTF-8 y omitiendo errores de codificación.
-#Esto permite leer el archivo línea por línea sin que se interrumpa por caracteres no válidos.
-    with open(ruta_log,"r", encoding="utf-8", errors="ignore") as f:
+
+def _parsear_timestamp(texto_fecha: str) -> datetime:
+    # el log no trae el anio, se le pega el anio actual para
+    # construir un datetime completo
+    year_actual = datetime.now().year
+    return datetime.strptime(f"{year_actual} {texto_fecha}", "%Y %b %d %H:%M:%S")
+
+
+def parse_auth_log(ruta_log: str) -> list[LogEvent]:
+    eventos = []
+    with open(ruta_log, "r", encoding="utf-8", errors="ignore") as f:
         for line in f:
-            match = PATRON_FALLO_SSH.search(line)
-            if match:
-                ip = match.group(1)
-                contador[ip] += 1
-
-    return contador
-
-
-def main():
-    ruta = "muestra_auth.log"
-    resultados = contar_fallos_por_ip(ruta)
-    print(f"IPs con intentos fallidos de SSH ({len(resultados)}) distintos :\n")
-    # most_common() ya regresa ordenado de mayor a menor cantidad, sin necesidad de sorted()
-    for ip, cantidad in resultados.most_common():
-        print(f" {ip:20} {cantidad} intentos fallidos ")
-
-if __name__ == "__main__":
-    main()
+            match = PATRON_EVENTO_SSH.search(line)
+            if not match:
+                continue
+            eventos.append(LogEvent(
+                timestamp=_parsear_timestamp(match.group(1)),
+                exitoso=match.group(2) == "Accepted",
+                usuario=match.group(3),
+                ip_origen=match.group(4),
+            ))
+    return eventos
