@@ -19,7 +19,7 @@ for i,chunk in enumerate(chunks):
     embedding = container.embedder.embed(chunk.content)
     container.vector_store.add_chunk([chunk], [embedding])
     # imprime progreso cada 25 chunks (y en el ultimo) para no saturar la consola
-    if i % 25 == 0 or i == len(chunks):
+    if i % 25 == 0 or i == len(chunks) - 1:
         print(f"   [{i}/{len(chunks)}] {chunk.metadata['technique_id']} - {chunk.metadata['name']}")
 print("\nIngesta de ATT&CK completa.")
 
