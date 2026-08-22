@@ -2,6 +2,10 @@ from domain.services.ioc_extractor import extraer_ips, extraer_dominios, extraer
 from application.rag.answer_question import answer_question
 from infrastructure.container import Container
 
+import re   
+
+PATRON_TECHNIQUE_ID = re.compile(r"\bT\d{4}(?:\.\d{3})?\b", re.IGNORECASE)
+
 def buscar_notas(pregunta: str, container: Container):
     return answer_question(
         question=pregunta,
@@ -66,4 +70,45 @@ def consultar_detecciones(ip_origen: str | None, container: Container) -> dict:
         ]
     }
 
+def consultar_tecnica_attack(consulta: str, container: Container) -> dict:
+    """
+    Busca tecnicas de MITRE ATT&CK. Si la consulta contiene un ID
+    reconocible (ej. T1055, T1055.001), busca EXACTO por metadata en
+    vez de semantico -- un ID corto como "T1055" no tiene suficiente
+    contenido para que la busqueda por embeddings lo encuentre bien.
+    """
+    match = PATRON_TECHNIQUE_ID.search(consulta)
+    if match:
+        #El match.group(0) devuelve el primer grupo de la expresión regular que coincide con la consulta, que en este caso es el ID de la técnica (ej. T1055)
+        technique_id = match.group(0).upper()
+        chunk_id = f"attack::{technique_id}"
+        # top_k alto + filtro por id exacto simula un "WHERE id = X"
+        # sobre el vector store, sin necesitar un metodo get_by_id nuevo
+        #El container.vector_store.search busca en la base de datos de vectores las notas que contienen el ID de la técnica y devuelve los resultados más relevantes
+        resultados = container.vector_store.search(
+            query_embedding=container.embedder.embed(consulta),
+            top_k=1,
+            filters={"technique_id": technique_id},
+        )
+        if resultados:
+            r = resultados[0]
+            return {
+                "question": consulta,
+                "answer": r.chunk.content,
+                "sources": [r.chunk.id],
+            }
+        return {
+            "question": consulta,
+            "answer": f"No se encontro la tecnica {technique_id} en la base de ATT&CK ingerida.",
+            "sources": [],
+        }
 
+    # sin ID reconocible -- pregunta conceptual, aqui si sirve semantico
+    #Este es el caso en el que la consulta no contiene un ID de técnica reconocible, por lo que se realiza una búsqueda semántica en la base de datos
+    #de vectores para encontrar la información más relevante sobre la técnica de MITRE ATT&CK relacionada con la consulta.
+    return answer_question(
+        question=consulta,
+        embedder=container.embedder,
+        vector_store=container.vector_store,
+        llm=container.llm,
+    )

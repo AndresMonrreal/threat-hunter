@@ -15,6 +15,9 @@ SYSTEM_PROMPT = (
     "conceptuales. Usa consultar_detecciones para pedir alertas "
     "guardadas directamente. Si te piden ayuda ofensiva o de "
     "explotacion, redirige explicando tu proposito defensivo."
+    "Responde de forma concisa por defecto -- 3-5 lineas u oraciones. "
+    "Solo da una respuesta extensa y detallada si el usuario "
+    "explicitamente pide mas profundidad o ejemplos."
 )
 
 def build_llm_node(llm_con_tools):

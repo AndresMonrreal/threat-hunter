@@ -17,9 +17,18 @@ while True:
     if not pregunta:
         continue
 
+    len_antes = len(historial)
     historial.append(("human", pregunta))
     resultado = agente.invoke({"messages": historial})
     historial = resultado["messages"]
 
+    # muestra que herramienta(s) uso el agente en este turno, antes de la respuesta final
+    for m in historial[len_antes + 1:-1]:
+        if getattr(m, "tool_calls", None):
+            for tc in m.tool_calls:
+                print(f"  [tool] {tc['name']}({tc['args']})")
+
     respuesta = historial[-1]
     print(f"\nAgente: {respuesta.content}\n")
+
+    

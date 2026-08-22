@@ -4,7 +4,7 @@ from langgraph.graph.message import add_messages
 from langchain_ollama import ChatOllama
 
 from application.agent.nodes import build_llm_node, build_tools_node
-from application.hunting.execute_hunt import buscar_notas, consultar_detecciones, correlacionar_ioc
+from application.hunting.execute_hunt import buscar_notas, consultar_detecciones, consultar_tecnica_attack, correlacionar_ioc
 from infrastructure.container import Container
 from langchain_core.tools import tool
 
@@ -34,8 +34,13 @@ def build_agent_graph(container: Container):
         """Consulta detecciones guardadas (alertas de fuerza bruta), opcionalmente filtradas por IP."""
         return consultar_detecciones(ip_origen, container)
 
+    @tool
+    def buscar_tecnica_attack_tool(consulta: str) -> dict:
+        """Busca informacion sobre tecnicas oficiales de MITRE ATT&CK (por nombre, ID como T1055, o descripcion)."""
+        return consultar_tecnica_attack(consulta, container)
 
-    tools = [buscar_notas_tool, correlacionar_ioc_tool, consultar_detecciones_tool]
+
+    tools = [buscar_notas_tool, correlacionar_ioc_tool, consultar_detecciones_tool, buscar_tecnica_attack_tool]
     tools_por_nombre = {t.name: t for t in tools}
 
     llm = ChatOllama(model=container.settings.llm_model, temperature=0)
