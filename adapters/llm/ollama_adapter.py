@@ -26,7 +26,7 @@ class OllamaAdapter(LLMProviderPort):
         response = requests.post(
             f"{self._ollama_url}/api/generate",
             json=payload,
-            timeout=120,
+            timeout=300,
         )
         # lanza excepcion si Ollama respondio con codigo de error (4xx/5xx)
         response.raise_for_status()
