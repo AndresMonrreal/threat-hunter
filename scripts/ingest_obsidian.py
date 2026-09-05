@@ -12,7 +12,7 @@ VAULT_PATH = settings.obsidian_vault_path
 
 container = build_container()
 
-print(f"1) Leyendo notas desde: {VAULT_PATH}")
+print(f"1- Leyendo notas desde: {VAULT_PATH}")
 chunks = load_obsidian_notes(VAULT_PATH)
 
 if len(chunks) == 0:
@@ -20,7 +20,7 @@ if len(chunks) == 0:
 
 print(f"   {len(chunks)} chunks generados de tus notas.")
 
-print("\n2) Generando embeddings e insertando en pgvector...")
+print("\n2- Generando embeddings e insertando en pgvector...")
 for i,chunk in enumerate(chunks,1):  # arranca en 1 para que el progreso impreso sea "1/N" y no "0/N"
     embedding = container.embedder.embed(chunk.content)
     container.vector_store.add_chunk([chunk],[embedding])

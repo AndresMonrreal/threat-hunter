@@ -13,19 +13,19 @@ ruta_log = sys.argv[1] if len(sys.argv) > 1 else "tests/fixtures/muestra_auth.lo
 
 container = build_container()
 
-print(f"1) Parseando: {ruta_log}")
+print(f"1- Parseando: {ruta_log}")
 eventos = parse_auth_log(ruta_log)
 print(f"   {len(eventos)} eventos encontrados")
 
-print("\n2) Buscando patrones de fuerza bruta...")
+print("\n2- Buscando patrones de fuerza bruta.")
 detecciones = detectar_fuerza_bruta(eventos)
 print(f"   {len(detecciones)} deteccion(es) encontrada(s)")
 for d in detecciones:
     print(f"   ALERTA: {d.ip_origen} - {d.intentos} intentos entre {d.inicio} y {d.fin}")
 
 if detecciones:
-    print("\n3) Guardando en Postgres...")
+    print("\n3- Guardandose en postgres")
     container.log_engine.save_detections(detecciones)
     print("   OK")
 else:
-    print("\n3) Nada que guardar.") 
+    print("\n3- No hay nada que guardar.") 

@@ -9,8 +9,8 @@ print(f"Pregunta: {pregunta}\n")
 
 resultado = agente.invoke({"messages": [("human", pregunta)]})
 
-print("=== Trace completo ===")
+print("---- Trace completo ----")
 for m in resultado["messages"]:
     print(f"[{m.type}] {m.content[:200] if m.content else '(tool call)'}")
 
-print(f"\n=== Respuesta final ===\n{resultado['messages'][-1].content}")
+print(f"\n---- Respuesta final ----\n{resultado['messages'][-1].content}")

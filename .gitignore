@@ -4,3 +4,5 @@ data/knowledge/attack/*.json
 __pycache__/
 *.pyc
 logs/
+forensic_report.json
+forensic_report.md

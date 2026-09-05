@@ -16,7 +16,7 @@ settings = load_settings()
 container = build_container()
 VAULT = Path(settings.obsidian_vault_path)
 
-print(f"1) Recorriendo vault: {VAULT}")
+print(f"1- Recorriendo vault: {VAULT}")
 
 notas_encontradas = set()
 nuevas, actualizadas, sin_cambios = 0, 0, 0
@@ -54,7 +54,7 @@ for md_file in VAULT.rglob("*.md"):
     registrar_nota(settings.postgres_conninfo, note_path, content_hash, len(chunks))
     print(f"   procesada: {note_path} ({len(chunks)} chunks)")
 
-print(f"\n2) Nuevas: {nuevas} | Actualizadas: {actualizadas} | Sin cambios: {sin_cambios}")
+print(f"\n2- Nuevas: {nuevas} | Actualizadas: {actualizadas} | Sin cambios: {sin_cambios}")
 registradas = set(listar_notas_registradas(settings.postgres_conninfo))
 # notas que estan registradas en la DB pero ya no se encontraron en el vault: fueron borradas
 borradas = registradas - notas_encontradas

@@ -10,11 +10,11 @@ JSON_PATH = "data/knowledge/attack/enterprise-attack.json"
 
 container = build_container()
 
-print(f"1) Leyendo tecnicas desde: {JSON_PATH}")
+print(f"1- Leyendo tecnicas desde: {JSON_PATH}")
 chunks = load_attack_techniques(JSON_PATH)
 print(f"   {len(chunks)} tecnicas validas encontradas.")
 
-print("\n2) Generando embeddings e insertando en pgvector...")
+print("\n2- Generando embeddings e insertando en pgvector.")
 for i,chunk in enumerate(chunks):
     embedding = container.embedder.embed(chunk.content)
     container.vector_store.add_chunk([chunk], [embedding])
